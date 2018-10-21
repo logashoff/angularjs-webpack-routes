@@ -1,225 +1,229 @@
-'use strict';
+const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-// Modules
-var webpack = require('webpack');
-var autoprefixer = require('autoprefixer');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
+const ENV = process.env.npm_lifecycle_event;
+const isTest = ENV === 'test' || ENV === 'test-watch';
+const isProd = ENV === 'build';
 
-/**
- * Env
- * Get npm lifecycle event to identify the environment
- */
-var ENV = process.env.npm_lifecycle_event;
-var isTest = ENV === 'test' || ENV === 'test-watch';
-var isProd = ENV === 'build';
+let plugins = [];
+if (isProd) {
+  plugins = [
+    // Copy assets from the public folder
+    // Reference: https://github.com/kevlened/copy-webpack-plugin
+    new CopyWebpackPlugin([{
+      from: __dirname + '/public'
+    }])
+  ]
+}
 
-module.exports = function makeWebpackConfig() {
-  /**
-   * Config
-   * Reference: http://webpack.github.io/docs/configuration.html
-   * This is the object where all configuration gets set
-   */
-  var config = {};
+module.exports = {
 
-  /**
-   * Entry
-   * Reference: http://webpack.github.io/docs/configuration.html#entry
-   * Should be an empty object if it's generating a test build
-   * Karma will set this when it's a test build
-   */
-  config.entry = isTest ? void 0 : {
-    app: './src/app/app.js'
-  };
-
-  /**
-   * Output
-   * Reference: http://webpack.github.io/docs/configuration.html#output
-   * Should be an empty object if it's generating a test build
-   * Karma will handle setting it up for you when it's a test build
-   */
-  config.output = isTest ? {} : {
-    // Absolute output directory
-    path: __dirname + '/dist',
-
-    // Output path from the view of the page
-    // Uses webpack-dev-server in development
-    publicPath: '/',
-
-    // Filename for entry points
-    // Only adds hash in build mode
-    filename: isProd ? '[name].[hash].js' : '[name].bundle.js',
-
-    // Filename for non-entry points
-    // Only adds hash in build mode
-    chunkFilename: isProd ? '[name].[hash].js' : '[name].bundle.js'
-  };
-
-  /**
-   * Devtool
-   * Reference: http://webpack.github.io/docs/configuration.html#devtool
-   * Type of sourcemap to use per build type
-   */
-  if (isTest) {
-    config.devtool = 'inline-source-map';
-  }
-  else if (isProd) {
-    config.devtool = 'source-map';
-  }
-  else {
-    config.devtool = 'eval-source-map';
-  }
-
-  /**
-   * Loaders
-   * Reference: http://webpack.github.io/docs/configuration.html#module-loaders
-   * List: http://webpack.github.io/docs/list-of-loaders.html
-   * This handles most of the magic responsible for converting modules
-   */
-
-  // Initialize module
-  config.module = {
-    rules: [{
-      // JS LOADER
-      // Reference: https://github.com/babel/babel-loader
-      // Transpile .js files using babel-loader
-      // Compiles ES6 and ES7 into ES5 code
-      test: /\.js$/,
-      loader: 'babel-loader',
-      exclude: /node_modules/
-    }, {
-      // CSS LOADER
-      // Reference: https://github.com/webpack/css-loader
-      // Allow loading css through js
-      //
-      // Reference: https://github.com/postcss/postcss-loader
-      // Postprocess your css with PostCSS plugins
-      test: /\.css$/,
-      // Reference: https://github.com/webpack/extract-text-webpack-plugin
-      // Extract css files in production builds
-      //
-      // Reference: https://github.com/webpack/style-loader
-      // Use style-loader in development.
-
-      loader: isTest ? 'null-loader' : ExtractTextPlugin.extract({
-        fallbackLoader: 'style-loader',
-        loader: [
-          {loader: 'css-loader', query: {sourceMap: true}},
-          {loader: 'postcss-loader'}
-        ],
-      })
-    }, {
-      // ASSET LOADER
-      // Reference: https://github.com/webpack/file-loader
-      // Copy png, jpg, jpeg, gif, svg, woff, woff2, ttf, eot files to output
-      // Rename the file using the asset hash
-      // Pass along the updated reference to your code
-      // You can add here any file extension you want to get copied to your output
-      test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
-      loader: 'file-loader'
-    }, {
-      // HTML LOADER
-      // Reference: https://github.com/webpack/raw-loader
-      // Allow loading html through js
-      test: /\.html$/,
-      loader: 'raw-loader'
-    }]
-  };
-
-  // ISTANBUL LOADER
-  // https://github.com/deepsweet/istanbul-instrumenter-loader
-  // Instrument JS files with istanbul-lib-instrument for subsequent code coverage reporting
-  // Skips node_modules and files that end with .spec.js
-  if (isTest) {
-    config.module.rules.push({
-      enforce: 'pre',
-      test: /\.js$/,
-      exclude: [
-        /node_modules/,
-        /\.spec\.js$/
-      ],
-      loader: 'istanbul-instrumenter-loader',
-      query: {
-        esModules: true
-      }
-    })
-  }
-
-  /**
-   * PostCSS
-   * Reference: https://github.com/postcss/autoprefixer-core
-   * Add vendor prefixes to your css
-   */
-   // NOTE: This is now handled in the `postcss.config.js`
-   //       webpack2 has some issues, making the config file necessary
-
-  /**
-   * Plugins
-   * Reference: http://webpack.github.io/docs/configuration.html#plugins
-   * List: http://webpack.github.io/docs/list-of-plugins.html
-   */
-  config.plugins = [
-    new webpack.LoaderOptionsPlugin({
-      test: /\.scss$/i,
-      options: {
-        postcss: {
-          plugins: [autoprefixer]
+  mode: "development", // "production" | "development" | "none"
+  // Chosen mode tells webpack to use its built-in optimizations accordingly.
+  entry: isTest ? void 0 : "./src/app/app.component.js", // string | object | array
+  // defaults to './src'
+  // Here the application starts executing
+  // and webpack starts bundling
+  output: {
+    // options related to how webpack emits results
+    path: path.resolve(__dirname, "dist"), // string
+    // the target directory for all output files
+    // must be an absolute path (use the Node.js path module)
+    filename: "main.js", // string
+    // the filename template for entry chunks
+    publicPath: "",
+    // the name of the exported library
+    libraryTarget: "umd", // universal module definition
+    // the type of the exported library
+    /* Advanced output configuration (click to show) */
+    pathinfo: true, // boolean
+    // include useful path info about modules, exports, requests, etc. into the generated cod
+    chunkFilename: "[id].js",
+    // name of the JSONP function used to load chunks
+    sourceMapFilename: "[file].map", // string
+    // the filename template of the source map location
+    devtoolModuleFilenameTemplate: "webpack:///[resource-path]", // string
+    // the name template for modules in a devtool
+    devtoolFallbackModuleFilenameTemplate: "webpack:///[resource-path]?[hash]", // string
+    // the name template for modules in a devtool (used for conflicts)
+    umdNamedDefine: true, // boolean
+    // use a named AMD module in UMD library
+    crossOriginLoading: "use-credentials", // enum
+    // specifies how cross origin request are issued by the runtime
+    /* Expert output configuration (on own risk) */
+  },
+  module: {
+    // configuration regarding modules
+    rules: [
+      // rules for modules (configure loaders, parser options, etc.)
+      {
+        test: /\.m?js$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
         }
+      },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      },
+      {
+        test: /\.html$/,
+        use: [
+          // apply multiple loaders and options
+          "htmllint-loader",
+          {
+            loader: "html-loader",
+            options: {
+              /* ... */
+            }
+          }
+        ]
       }
-    })
-  ];
-
-  // Skip rendering index.html in test mode
-  if (!isTest) {
-    // Reference: https://github.com/ampedandwired/html-webpack-plugin
-    // Render index.html
-    config.plugins.push(
-      new HtmlWebpackPlugin({
-        template: './src/public/index.html',
-        inject: 'body'
-      }),
-
-      // Reference: https://github.com/webpack/extract-text-webpack-plugin
-      // Extract css files
-      // Disabled when in test mode or not in build mode
-      new ExtractTextPlugin({filename: 'css/[name].css', disable: !isProd, allChunks: true})
-    )
-  }
-
-  // Add build specific plugins
-  if (isProd) {
-    config.plugins.push(
-      // Reference: http://webpack.github.io/docs/list-of-plugins.html#noerrorsplugin
-      // Only emit files when there are no errors
-      new webpack.NoErrorsPlugin(),
-
-      // Reference: http://webpack.github.io/docs/list-of-plugins.html#dedupeplugin
-      // Dedupe modules in the output
-      new webpack.optimize.DedupePlugin(),
-
-      // Reference: http://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin
-      // Minify all javascript, switch loaders to minimizing mode
-      new webpack.optimize.UglifyJsPlugin(),
-
-      // Copy assets from the public folder
-      // Reference: https://github.com/kevlened/copy-webpack-plugin
-      new CopyWebpackPlugin([{
-        from: __dirname + '/src/public'
-      }])
-    )
-  }
-
-  /**
-   * Dev server configuration
-   * Reference: http://webpack.github.io/docs/configuration.html#devserver
-   * Reference: http://webpack.github.io/docs/webpack-dev-server.html
-   */
-  config.devServer = {
-    contentBase: './src/public',
-    stats: 'minimal',
-    host: '0.0.0.0'
-  };
-
-  return config;
-}();
+    ],
+    /* Advanced module configuration (click to show) */
+    noParse: [
+      /special-library\.js$/
+    ],
+    // do not parse this module
+    unknownContextRequest: ".",
+    unknownContextRecursive: true,
+    unknownContextRegExp: /^\.\/.*$/,
+    unknownContextCritical: true,
+    exprContextRequest: ".",
+    exprContextRegExp: /^\.\/.*$/,
+    exprContextRecursive: true,
+    exprContextCritical: true,
+    wrappedContextRegExp: /.*/,
+    wrappedContextRecursive: true,
+    wrappedContextCritical: false,
+    // specifies default behavior for dynamic requests
+  },
+  resolve: {
+    // options for resolving module requests
+    // (does not apply to resolving to loaders)
+    modules: [
+      "node_modules",
+      path.resolve(__dirname, "app")
+    ],
+    // directories where to look for modules
+    extensions: [".js", ".json", ".jsx", ".css"],
+    /* alternative alias syntax (click to show) */
+    alias: [
+      {
+        name: "module",
+        // the old request
+        alias: "new-module",
+        // the new request
+        onlyModule: true
+        // if true only "module" is aliased
+        // if false "module/inner/path" is also aliased
+      }
+    ],
+    /* Advanced resolve configuration (click to show) */
+    symlinks: true,
+    // follow symlinks to new location
+    descriptionFiles: ["package.json"],
+    // files that are read for package description
+    mainFields: ["main"],
+    // properties that are read from description file
+    // when a folder is requested
+    aliasFields: ["browser"],
+    // properties that are read from description file
+    // to alias requests in this package
+    enforceExtension: false,
+    // if true request must not include an extensions
+    // if false request may already include an extension
+    moduleExtensions: ["-module"],
+    enforceModuleExtension: false,
+    // like extensions/enforceExtension but for module names instead of files
+    unsafeCache: true,
+    // enables caching for resolved requests
+    // this is unsafe as folder structure may change
+    // but performance improvement is really big
+    cachePredicate: (path, request) => true,
+    // predicate function which selects requests for caching
+    plugins: []
+    // additional plugins applied to the resolver
+  },
+  performance: {
+    hints: "warning", // enum
+    maxAssetSize: 200000, // int (in bytes),
+    maxEntrypointSize: 400000, // int (in bytes)
+    assetFilter: function(assetFilename) {
+      // Function predicate that provides asset filenames
+      return assetFilename.endsWith('.css') || assetFilename.endsWith('.js');
+    }
+  },
+  devtool: "source-map", // enum
+  // enhance debugging by adding meta info for the browser devtools
+  // source-map most detailed at the expense of build speed.
+  context: __dirname, // string (absolute path!)
+  // the home directory for webpack
+  // the entry and module.rules.loader option
+  //   is resolved relative to this directory
+  target: "web", // enum
+  stats: { //object
+    assets: true,
+    colors: true,
+    errors: true,
+    errorDetails: true,
+    hash: true,
+    // ...
+  },
+  // lets you precisely control what bundle information gets displayed
+  devServer: {
+    proxy: { // proxy URLs to backend development server
+      '/api': 'http://localhost:3000'
+    },
+    contentBase: path.join(__dirname, 'public'), // boolean | string | array, static file location
+    compress: true, // enable gzip compression
+    historyApiFallback: true, // true for index.html upon 404, object for multiple paths
+    hot: true, // hot module replacement. Depends on HotModuleReplacementPlugin
+    https: false, // true for self-signed, object for cert authority
+    noInfo: true, // only errors & warns on hot reload
+    // ...
+  },
+  plugins: plugins,
+  // list of additional plugins
+  resolveLoader: { /* same as resolve */ },
+  // separate resolve options for loaders
+  parallelism: 1, // number
+  // limit the number of parallel processed modules
+  profile: true, // boolean
+  // capture timing information
+  bail: true, //boolean
+  // fail out on the first error instead of tolerating it.
+  cache: false, // boolean
+  // disable/enable caching
+  watch: false, // boolean
+  // enables watching
+  watchOptions: {
+    aggregateTimeout: 1000, // in ms
+    // aggregates multiple changes to a single rebuild
+    poll: true,
+    // enables polling mode for watching
+    // must be used on filesystems that doesn't notify on change
+    // i. e. nfs shares
+  },
+  node: {
+    // Polyfills and mocks to run Node.js-
+    // environment code in non-Node environments.
+    console: false, // boolean | "mock"
+    global: true, // boolean | "mock"
+    process: true, // boolean
+    __filename: "mock", // boolean | "mock"
+    __dirname: "mock", // boolean | "mock"
+    Buffer: true, // boolean | "mock"
+    setImmediate: true // boolean | "mock" | "empty"
+  },
+  recordsPath: path.resolve(__dirname, "build/records.json"),
+  recordsInputPath: path.resolve(__dirname, "build/records.json"),
+  recordsOutputPath: path.resolve(__dirname, "build/records.json"),
+};
