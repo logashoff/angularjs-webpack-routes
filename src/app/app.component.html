@@ -1,0 +1,10 @@
+<header class="app-header">
+  <nav class="app-navigation">
+    <a class="app-navigation-link" ng-repeat="state in ::$ctrl.states" ui-sref="{{::state.name}}">
+      {{::state.data.title}}
+    </a>
+  </nav>
+</header>
+<main class="app-content">
+  <div ui-view></div>
+</main>

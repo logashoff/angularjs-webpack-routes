@@ -1,5 +1,4 @@
-// Reference: http://karma-runner.github.io/0.12/config/configuration-file.html
-module.exports = function karmaConfig (config) {
+module.exports = (config) => {
   config.set({
     frameworks: [
       // Reference: https://github.com/karma-runner/karma-jasmine
@@ -17,16 +16,16 @@ module.exports = function karmaConfig (config) {
       'coverage'
     ],
 
+    // ... normal karma configuration
     files: [
-      // Grab all files in the app folder that contain .spec.
-      'src/tests.webpack.js'
+      // only specify one entry point
+      // and require all tests in there
+      'test/index_test.js'
     ],
 
     preprocessors: {
-      // Reference: http://webpack.github.io/docs/testing.html
-      // Reference: https://github.com/webpack/karma-webpack
-      // Convert files with webpack and load sourcemaps
-      'src/tests.webpack.js': ['webpack', 'sourcemap']
+      // add webpack as preprocessor
+      'test/index_test.js': [ 'webpack', 'sourcemap']
     },
 
     browsers: [
@@ -47,9 +46,10 @@ module.exports = function karmaConfig (config) {
 
     webpack: require('./webpack.config'),
 
-    // Hide webpack build information from output
     webpackMiddleware: {
-      noInfo: 'errors-only'
-    }
-  });
+      // webpack-dev-middleware configuration
+      // i. e.
+      stats: 'errors-only'
+    },
+  })
 };
