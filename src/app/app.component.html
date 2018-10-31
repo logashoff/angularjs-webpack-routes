@@ -1,6 +1,7 @@
 <header class="app-header">
   <nav class="app-navigation">
-    <a class="app-navigation-link" ng-repeat="state in ::$ctrl.states" ui-sref="{{::state.name}}">
+    <a class="app-navigation-link" ng-repeat="state in ::$ctrl.states track by $index"
+       ui-sref-active="active" ui-sref="{{::state.name}}">
       {{::state.data.title}}
     </a>
   </nav>

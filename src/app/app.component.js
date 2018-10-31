@@ -3,7 +3,7 @@ import uiRouter from 'angular-ui-router';
 import {stateConfig, states} from './app.routing';
 import {homeComponent, aboutComponent} from './components'
 import template from './app.component.html';
-import './app.component.css';
+import './app.component.scss';
 
 export class AppCtrl {
   constructor() {

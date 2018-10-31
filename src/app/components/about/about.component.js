@@ -1,4 +1,4 @@
-import './about.component.css';
+import './about.component.scss';
 import template from './about.component.html';
 
 class AboutCtrl {
