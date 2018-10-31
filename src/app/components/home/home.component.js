@@ -1,4 +1,4 @@
-import './home.component.css';
+import './home.component.scss';
 import template from './home.component.html';
 
 class HomeCtrl {

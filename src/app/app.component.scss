@@ -1,0 +1,57 @@
+$header-height: 60px;
+$header-background: #333;
+$header-padding: 0 10px;
+$link-padding: 0 25px;
+$link-font-size: 24px;
+$link-color: #fff;
+
+$content-padding: 20px 30px;
+$content-background: #eee;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.app-header {
+  position: absolute;
+  right: 0;
+  top: 0;
+  left: 0;
+  background: $header-background;
+  height: $header-height;
+  line-height: $header-height;
+  padding: $header-padding;
+
+  .app-navigation {
+    &-link {
+      font-size: $link-font-size;
+      line-height: $header-height;
+      color: $link-color;
+      display: inline-block;
+      position: relative;
+      box-sizing: border-box;
+      font-weight: bold;
+      text-decoration: none;
+      padding: $link-padding;
+
+      &.active {
+        background-color: $content-background;
+        color: $header-background;
+      }
+    }
+  }
+}
+
+.app-content {
+  background: $content-background;
+  padding: $content-padding;
+  top: $header-height;
+  position: absolute;
+  overflow: hidden;
+  overflow-y: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
